@@ -1,0 +1,56 @@
+[
+  {
+    "id": "subject-fisika",
+    "name": "Fisika",
+    "quotaRombel": 3,
+    "linearFields": ["teknik", "informatika", "pertambangan", "geologi", "arsitektur", "sipil", "elektro", "mesin", "ai", "data"]
+  },
+  {
+    "id": "subject-kimia",
+    "name": "Kimia",
+    "quotaRombel": 5,
+    "linearFields": ["dokter", "farmasi", "kesehatan", "teknik kimia", "pertambangan"]
+  },
+  {
+    "id": "subject-biologi",
+    "name": "Biologi",
+    "quotaRombel": 3,
+    "linearFields": ["dokter", "perawat", "farmasi", "bidan", "kesehatan", "psikologi", "kedokteran", "gizi"]
+  },
+  {
+    "id": "subject-sosiologi",
+    "name": "Sosiologi",
+    "quotaRombel": 3,
+    "linearFields": ["hukum", "komunikasi", "pendidikan", "sosial", "psikologi", "hubungan internasional"]
+  },
+  {
+    "id": "subject-ekonomi",
+    "name": "Ekonomi",
+    "quotaRombel": 3,
+    "linearFields": ["ekonomi", "akuntansi", "manajemen", "bisnis", "stan", "administrasi"]
+  },
+  {
+    "id": "subject-geografi",
+    "name": "Geografi",
+    "quotaRombel": 5,
+    "linearFields": ["geologi", "geodesi", "pertambangan", "perencanaan wilayah", "lingkungan", "geografi"]
+  },
+  {
+    "id": "subject-matematika-tindak-lanjut",
+    "name": "Matematika Tindak Lanjut",
+    "quotaRombel": 4,
+    "linearFields": ["teknik", "informatika", "data", "statistik", "stan", "ai", "ekonomi"]
+  },
+  {
+    "id": "subject-bahasa-inggris-tindak-lanjut",
+    "name": "Bahasa Inggris Tindak Lanjut",
+    "quotaRombel": 3,
+    "linearFields": ["hubungan internasional", "kedinasan", "komunikasi", "pendidikan", "bahasa", "global"]
+  },
+  {
+    "id": "subject-bahasa-arab",
+    "name": "Bahasa Arab",
+    "quotaRombel": 2,
+    "linearFields": ["agama", "sastra", "pendidikan", "bahasa arab", "timur tengah"]
+  }
+]

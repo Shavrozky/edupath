@@ -1,0 +1,25 @@
+:80 {
+    encode gzip
+
+    handle_path /api/* {
+        reverse_proxy backend:8000
+    }
+
+    handle {
+        reverse_proxy frontend:80
+    }
+}
+
+# When your domain is ready, replace the block above with this HTTPS config:
+#
+# edupath.katasurya.my.id {
+#     encode gzip
+#
+#     handle_path /api/* {
+#         reverse_proxy backend:8000
+#     }
+#
+#     handle {
+#         reverse_proxy frontend:80
+#     }
+# }

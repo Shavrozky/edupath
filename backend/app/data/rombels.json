@@ -1,0 +1,114 @@
+[
+  {
+    "id": "rombel-a",
+    "name": "A",
+    "group": "Healthy & Medicine",
+    "subjects": [
+      "Biologi",
+      "Kimia",
+      "Sosiologi",
+      "Bahasa Inggris Tindak Lanjut"
+    ],
+    "capacity": 35,
+    "filled": 35,
+    "active": true
+  },
+  {
+    "id": "rombel-b",
+    "name": "B",
+    "group": "Healthy & Medicine",
+    "subjects": [
+      "Biologi",
+      "Kimia",
+      "Sosiologi",
+      "Bahasa Inggris Tindak Lanjut"
+    ],
+    "capacity": 35,
+    "filled": 35,
+    "active": true
+  },
+  {
+    "id": "rombel-c",
+    "name": "C",
+    "group": "Engineering",
+    "subjects": [
+      "Fisika",
+      "Kimia",
+      "Geografi",
+      "Matematika Tindak Lanjut"
+    ],
+    "capacity": 35,
+    "filled": 23,
+    "active": true
+  },
+  {
+    "id": "rombel-d",
+    "name": "D",
+    "group": "Engineering",
+    "subjects": [
+      "Fisika",
+      "Kimia",
+      "Geografi",
+      "Matematika Tindak Lanjut"
+    ],
+    "capacity": 35,
+    "filled": 23,
+    "active": true
+  },
+  {
+    "id": "rombel-e",
+    "name": "E",
+    "group": "Engineering",
+    "subjects": [
+      "Fisika",
+      "Kimia",
+      "Geografi",
+      "Matematika Tindak Lanjut"
+    ],
+    "capacity": 35,
+    "filled": 23,
+    "active": true
+  },
+  {
+    "id": "rombel-f",
+    "name": "F",
+    "group": "Kedinasan",
+    "subjects": [
+      "Biologi",
+      "Ekonomi",
+      "Matematika Tindak Lanjut",
+      "Bahasa Inggris Tindak Lanjut"
+    ],
+    "capacity": 35,
+    "filled": 34,
+    "active": true
+  },
+  {
+    "id": "rombel-g",
+    "name": "G",
+    "group": "Humanities",
+    "subjects": [
+      "Sosiologi",
+      "Ekonomi",
+      "Geografi",
+      "Bahasa Arab"
+    ],
+    "capacity": 35,
+    "filled": 35,
+    "active": true
+  },
+  {
+    "id": "rombel-h",
+    "name": "H",
+    "group": "Humanities",
+    "subjects": [
+      "Sosiologi",
+      "Ekonomi",
+      "Geografi",
+      "Bahasa Arab"
+    ],
+    "capacity": 36,
+    "filled": 36,
+    "active": true
+  }
+]
