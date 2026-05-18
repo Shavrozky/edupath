@@ -40,15 +40,15 @@ export function DashboardPage() {
         <SummaryList title="Distribusi Kelompok" items={summary.groupDistribution} />
       </div>
       <div className="grid gap-4 xl:grid-cols-2">
-        <SummaryList title="Sisa Kuota Rombel" items={summary.remainingCapacityByRombel} />
-        <SummaryList title="Placement Basis" items={summary.placementBasisCount} />
+        <SummaryList title="Sisa Kuota Rombel" items={summary.remainingCapacityByRombel ?? {}} />
+        <SummaryList title="Placement Basis" items={summary.placementBasisCount ?? {}} />
       </div>
       <SummaryList title="Demand Mapel" items={summary.subjectDemand} />
     </div>
   );
 }
 
-function SummaryList({ title, items }: { title: string; items: Record<string, number> }) {
+function SummaryList({ title, items = {} }: { title: string; items?: Record<string, number> }) {
   return (
     <section className="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <h2 className="font-semibold text-slate-950">{title}</h2>
