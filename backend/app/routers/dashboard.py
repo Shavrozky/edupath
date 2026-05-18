@@ -20,6 +20,9 @@ def dashboard_summary() -> dict:
     group_distribution = Counter(
         recommendation.get("finalGroup") for recommendation in recommendations if recommendation.get("finalGroup")
     )
+    placement_basis_count = Counter(
+        recommendation.get("placementBasis", "Not Placed") for recommendation in recommendations
+    )
     subject_demand = defaultdict(int)
     for student in students:
         for field in ["prioritySubject1", "prioritySubject2", "backupSubject", "strongestSubject"]:
@@ -46,4 +49,5 @@ def dashboard_summary() -> dict:
         "groupDistribution": dict(group_distribution),
         "subjectDemand": dict(subject_demand),
         "remainingCapacityByRombel": remaining_capacity,
+        "placementBasisCount": dict(placement_basis_count),
     }

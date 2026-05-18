@@ -25,6 +25,15 @@ RecommendationStatus = Literal[
     "Manually Overridden",
 ]
 
+PlacementBasis = Literal[
+    "Priority Subject 1",
+    "Priority Subject 2",
+    "Career Goal",
+    "Available Quota",
+    "Manual Override",
+    "Not Placed",
+]
+
 
 class StudentBase(BaseModel):
     name: str
@@ -99,7 +108,11 @@ class Recommendation(BaseModel):
     studentName: str
     nis: str
     originClass: str
+    prioritySubject1: str = ""
+    prioritySubject2: str = ""
+    careerGoal: str = ""
     scoresByGroup: Dict[str, int]
+    placementBasis: PlacementBasis = "Not Placed"
     recommendedGroup: str
     recommendedRombel: Optional[str] = None
     alternativeRombels: List[str] = Field(default_factory=list)

@@ -9,8 +9,8 @@
       "Sosiologi",
       "Bahasa Inggris Tindak Lanjut"
     ],
-    "capacity": 35,
-    "filled": 35,
+    "capacity": 37,
+    "filled": 37,
     "active": true
   },
   {
@@ -23,8 +23,8 @@
       "Sosiologi",
       "Bahasa Inggris Tindak Lanjut"
     ],
-    "capacity": 35,
-    "filled": 35,
+    "capacity": 37,
+    "filled": 37,
     "active": true
   },
   {
@@ -37,8 +37,8 @@
       "Geografi",
       "Matematika Tindak Lanjut"
     ],
-    "capacity": 35,
-    "filled": 23,
+    "capacity": 37,
+    "filled": 37,
     "active": true
   },
   {
@@ -51,8 +51,8 @@
       "Geografi",
       "Matematika Tindak Lanjut"
     ],
-    "capacity": 35,
-    "filled": 23,
+    "capacity": 37,
+    "filled": 37,
     "active": true
   },
   {
@@ -65,8 +65,8 @@
       "Geografi",
       "Matematika Tindak Lanjut"
     ],
-    "capacity": 35,
-    "filled": 23,
+    "capacity": 37,
+    "filled": 36,
     "active": true
   },
   {
@@ -79,8 +79,8 @@
       "Matematika Tindak Lanjut",
       "Bahasa Inggris Tindak Lanjut"
     ],
-    "capacity": 35,
-    "filled": 34,
+    "capacity": 37,
+    "filled": 36,
     "active": true
   },
   {
@@ -93,8 +93,8 @@
       "Geografi",
       "Bahasa Arab"
     ],
-    "capacity": 35,
-    "filled": 35,
+    "capacity": 37,
+    "filled": 36,
     "active": true
   },
   {
@@ -107,8 +107,8 @@
       "Geografi",
       "Bahasa Arab"
     ],
-    "capacity": 36,
-    "filled": 36,
+    "capacity": 37,
+    "filled": 35,
     "active": true
   }
 ]

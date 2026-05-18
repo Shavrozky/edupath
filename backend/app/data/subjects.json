@@ -20,7 +20,7 @@
   {
     "id": "subject-sosiologi",
     "name": "Sosiologi",
-    "quotaRombel": 3,
+    "quotaRombel": 4,
     "linearFields": ["hukum", "komunikasi", "pendidikan", "sosial", "psikologi", "hubungan internasional"]
   },
   {
