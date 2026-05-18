@@ -7,8 +7,10 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-.backend/app/data/students.json
-.backend/app/data/recommendations.json
+
+# Sensitive runtime JSON data
+backend/app/data/students.json
+backend/app/data/recommendations.json
 # Node
 frontend/node_modules/
 frontend/dist/

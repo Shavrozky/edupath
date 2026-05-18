@@ -1,7 +1,8 @@
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
+from ..auth import require_superadmin
 from ..models import GROUP_NAMES, SUBJECT_NAMES, Rombel, RombelCreate, RombelUpdate
 from ..storage import read_json, write_json
 
@@ -31,7 +32,7 @@ def get_rombel(rombel_id: str) -> dict:
     raise HTTPException(status_code=404, detail="Rombel not found")
 
 
-@router.post("", response_model=Rombel, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=Rombel, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_superadmin)])
 def create_rombel(payload: RombelCreate) -> dict:
     validate_rombel(payload)
     rombels = read_json("rombels")
@@ -44,7 +45,7 @@ def create_rombel(payload: RombelCreate) -> dict:
     return rombel
 
 
-@router.put("/{rombel_id}", response_model=Rombel)
+@router.put("/{rombel_id}", response_model=Rombel, dependencies=[Depends(require_superadmin)])
 def update_rombel(rombel_id: str, payload: RombelUpdate) -> dict:
     validate_rombel(payload)
     rombels = read_json("rombels")
@@ -60,7 +61,7 @@ def update_rombel(rombel_id: str, payload: RombelUpdate) -> dict:
     raise HTTPException(status_code=404, detail="Rombel not found")
 
 
-@router.delete("/{rombel_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{rombel_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_superadmin)])
 def delete_rombel(rombel_id: str) -> None:
     rombels = read_json("rombels")
     remaining = [rombel for rombel in rombels if rombel["id"] != rombel_id]

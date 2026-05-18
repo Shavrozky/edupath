@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getErrorMessage } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { DataTable } from '../components/DataTable';
 import type { Student } from '../types';
 
 export function StudentsPage() {
+  const { isSuperadmin } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
@@ -80,15 +82,17 @@ export function StudentsPage() {
           <h1 className="text-2xl font-bold text-slate-950">Students</h1>
           <p className="mt-1 text-slate-500">Data pilihan mapel siswa kelas X. Total tampil: {filteredStudents.length} dari {students.length} siswa.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <label className="cursor-pointer rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm">
-            {importing ? 'Importing...' : 'Import Excel'}
-            <input disabled={importing} type="file" accept=".xlsx" className="hidden" onChange={(event) => void importExcel(event.target.files?.[0] ?? null)} />
-          </label>
-          <Link className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-md" to="/students/new">
-            Add Student
-          </Link>
-        </div>
+        {isSuperadmin && (
+          <div className="flex flex-wrap gap-2">
+            <label className="cursor-pointer rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm">
+              {importing ? 'Importing...' : 'Import Excel'}
+              <input disabled={importing} type="file" accept=".xlsx" className="hidden" onChange={(event) => void importExcel(event.target.files?.[0] ?? null)} />
+            </label>
+            <Link className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-md" to="/students/new">
+              Add Student
+            </Link>
+          </div>
+        )}
       </div>
       {error && <p className="rounded-xl bg-red-50 p-4 text-red-700">{error}</p>}
       {message && <p className="rounded-xl bg-emerald-50 p-4 text-emerald-700">{message}</p>}
@@ -113,20 +117,24 @@ export function StudentsPage() {
             { key: 'prioritySubject2', header: 'Prioritas 2', render: (row) => row.prioritySubject2 },
             { key: 'backupSubject', header: 'Cadangan', render: (row) => row.backupSubject },
             { key: 'strongestSubject', header: 'Dikuasai', render: (row) => row.strongestSubject },
-            {
-              key: 'actions',
-              header: 'Action',
-              render: (row) => (
-                <div className="flex min-w-36 flex-wrap gap-2">
-                  <Link className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 ring-1 ring-blue-100 transition hover:-translate-y-0.5 hover:bg-blue-100 hover:shadow-sm" to={`/students/${row.id}/edit`}>
-                    Edit
-                  </Link>
-                  <button className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 ring-1 ring-red-100 transition hover:-translate-y-0.5 hover:bg-red-100 hover:shadow-sm" onClick={() => setDeleteTarget(row)}>
-                    Delete
-                  </button>
-                </div>
-              ),
-            },
+            ...(isSuperadmin
+              ? [
+                  {
+                    key: 'actions',
+                    header: 'Action',
+                    render: (row: Student) => (
+                      <div className="flex min-w-36 flex-wrap gap-2">
+                        <Link className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 ring-1 ring-blue-100 transition hover:-translate-y-0.5 hover:bg-blue-100 hover:shadow-sm" to={`/students/${row.id}/edit`}>
+                          Edit
+                        </Link>
+                        <button className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 ring-1 ring-red-100 transition hover:-translate-y-0.5 hover:bg-red-100 hover:shadow-sm" onClick={() => setDeleteTarget(row)}>
+                          Delete
+                        </button>
+                      </div>
+                    ),
+                  },
+                ]
+              : []),
           ]}
         />
       )}

@@ -1,6 +1,11 @@
 # EduPath Rombel Planner
 
-EduPath Rombel Planner adalah aplikasi fullstack untuk membantu sekolah menentukan rombel kelas XI/XII berdasarkan pilihan mata pelajaran siswa kelas X. MVP ini memakai rule-based recommendation engine, tanpa database, tanpa authentication, dan tanpa AI/LLM.
+EduPath Rombel Planner adalah aplikasi fullstack untuk membantu sekolah menentukan rombel kelas XI/XII berdasarkan pilihan mata pelajaran siswa kelas X. MVP ini memakai rule-based recommendation engine, JSON file storage, dan autentikasi role-based sederhana.
+
+Role aplikasi:
+
+- `superadmin`: bisa melihat dan mengubah semua data, import Excel, generate rekomendasi, review/place, dan export.
+- `viewer`: hanya bisa melihat data dan export, tidak bisa mengubah data.
 
 Data disimpan dalam file JSON agar mudah dipahami dan mudah dimigrasikan ke PostgreSQL pada tahap berikutnya.
 

@@ -4,8 +4,10 @@ services:
       context: ./backend
     restart: unless-stopped
     environment:
-      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      SUPERADMIN_USERNAME: ${SUPERADMIN_USERNAME:-admin}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-admin}
+      VIEWER_USERNAME: ${VIEWER_USERNAME:-viewer}
+      VIEWER_PASSWORD: ${VIEWER_PASSWORD:-viewer}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-only-change-this-secret}
       JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-720}
     volumes:

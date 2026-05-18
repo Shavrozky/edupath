@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { api, getErrorMessage } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { DataTable } from '../components/DataTable';
 import { RecommendationBadge } from '../components/RecommendationBadge';
 import { GROUP_NAMES, type Recommendation, type Rombel } from '../types';
@@ -16,6 +17,7 @@ function rombelRemaining(rombel: Rombel) {
 }
 
 export function RecommendationsPage() {
+  const { isSuperadmin } = useAuth();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [rombels, setRombels] = useState<Rombel[]>([]);
   const [overrideForm, setOverrideForm] = useState<OverrideForm | null>(null);
@@ -166,9 +168,11 @@ export function RecommendationsPage() {
             <option value="unplaced">Belum Ditempatkan</option>
             <option value="placed">Sudah Ditempatkan</option>
           </select>
-          <button disabled={working} onClick={() => void generateRecommendations()} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-md disabled:translate-y-0 disabled:opacity-60">
-            {working ? 'Memproses...' : 'Generate Recommendation'}
-          </button>
+          {isSuperadmin && (
+            <button disabled={working} onClick={() => void generateRecommendations()} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-md disabled:translate-y-0 disabled:opacity-60">
+              {working ? 'Memproses...' : 'Generate Recommendation'}
+            </button>
+          )}
           <button onClick={() => void exportExcel()} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm">
             Export Excel
           </button>
@@ -193,7 +197,7 @@ export function RecommendationsPage() {
         </button>
       </div>
       {error && <p className="rounded-xl bg-red-50 p-4 text-red-700">{error}</p>}
-      {overrideForm && selectedRecommendation && (
+      {isSuperadmin && overrideForm && selectedRecommendation && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 backdrop-blur-sm md:items-center md:p-6">
           <form onSubmit={submitOverride} className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-t-3xl border border-slate-200 bg-white shadow-2xl md:rounded-3xl">
             <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200 bg-white/95 p-5 backdrop-blur">
@@ -319,15 +323,19 @@ export function RecommendationsPage() {
             { key: 'finalRombel', header: 'Final Rombel', render: (row) => row.finalRombel ?? '-' },
             { key: 'status', header: 'Status', render: (row) => <RecommendationBadge status={row.status} /> },
             { key: 'reviewNotes', header: 'Review Notes', render: (row) => row.reviewNotes || '-' },
-            {
-              key: 'actions',
-              header: 'Override',
-              render: (row) => (
-                <button className="rounded-lg bg-blue-50 px-3 py-1.5 font-semibold text-blue-700 transition hover:bg-blue-100" onClick={() => setOverrideForm({ recommendationId: row.id, finalRombel: row.finalRombel ?? '', finalGroup: row.finalGroup ?? '', reviewNotes: row.reviewNotes })}>
-                  Review / Place
-                </button>
-              ),
-            },
+            ...(isSuperadmin
+              ? [
+                  {
+                    key: 'actions',
+                    header: 'Override',
+                    render: (row: Recommendation) => (
+                      <button className="rounded-lg bg-blue-50 px-3 py-1.5 font-semibold text-blue-700 transition hover:bg-blue-100" onClick={() => setOverrideForm({ recommendationId: row.id, finalRombel: row.finalRombel ?? '', finalGroup: row.finalGroup ?? '', reviewNotes: row.reviewNotes })}>
+                        Review / Place
+                      </button>
+                    ),
+                  },
+                ]
+              : []),
           ]}
         />
       )}

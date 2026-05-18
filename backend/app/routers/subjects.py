@@ -1,7 +1,8 @@
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
+from ..auth import require_superadmin
 from ..models import Subject, SubjectCreate, SubjectUpdate
 from ..storage import read_json, write_json
 
@@ -21,7 +22,7 @@ def get_subject(subject_id: str) -> dict:
     raise HTTPException(status_code=404, detail="Subject not found")
 
 
-@router.post("", response_model=Subject, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=Subject, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_superadmin)])
 def create_subject(payload: SubjectCreate) -> dict:
     subjects = read_json("subjects")
     if any(subject["name"] == payload.name for subject in subjects):
@@ -33,7 +34,7 @@ def create_subject(payload: SubjectCreate) -> dict:
     return subject
 
 
-@router.put("/{subject_id}", response_model=Subject)
+@router.put("/{subject_id}", response_model=Subject, dependencies=[Depends(require_superadmin)])
 def update_subject(subject_id: str, payload: SubjectUpdate) -> dict:
     subjects = read_json("subjects")
     for index, subject in enumerate(subjects):
@@ -48,7 +49,7 @@ def update_subject(subject_id: str, payload: SubjectUpdate) -> dict:
     raise HTTPException(status_code=404, detail="Subject not found")
 
 
-@router.delete("/{subject_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{subject_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_superadmin)])
 def delete_subject(subject_id: str) -> None:
     subjects = read_json("subjects")
     remaining = [subject for subject in subjects if subject["id"] != subject_id]

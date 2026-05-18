@@ -1,7 +1,8 @@
 from uuid import uuid4
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
+from ..auth import require_superadmin
 from ..import_excel import merge_students, read_students_from_excel
 from ..models import SUBJECT_NAMES, Student, StudentCreate, StudentUpdate
 from ..scoring import recalculate_filled
@@ -27,7 +28,7 @@ def list_students() -> list[dict]:
     return read_json("students")
 
 
-@router.post("/import-excel")
+@router.post("/import-excel", dependencies=[Depends(require_superadmin)])
 async def import_students_excel(file: UploadFile = File(...), sheetName: str = "2026", replace: bool = True) -> dict:
     if not file.filename.lower().endswith(".xlsx"):
         raise HTTPException(status_code=400, detail="File must be an .xlsx workbook")
@@ -54,7 +55,7 @@ def get_student(student_id: str) -> dict:
     raise HTTPException(status_code=404, detail="Student not found")
 
 
-@router.post("", response_model=Student, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=Student, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_superadmin)])
 def create_student(payload: StudentCreate) -> dict:
     validate_student_subjects(payload)
     students = read_json("students")
@@ -66,7 +67,7 @@ def create_student(payload: StudentCreate) -> dict:
     return student
 
 
-@router.put("/{student_id}", response_model=Student)
+@router.put("/{student_id}", response_model=Student, dependencies=[Depends(require_superadmin)])
 def update_student(student_id: str, payload: StudentUpdate) -> dict:
     validate_student_subjects(payload)
     students = read_json("students")
@@ -80,7 +81,7 @@ def update_student(student_id: str, payload: StudentUpdate) -> dict:
     raise HTTPException(status_code=404, detail="Student not found")
 
 
-@router.delete("/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{student_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_superadmin)])
 def delete_student(student_id: str) -> None:
     students = read_json("students")
     remaining = [student for student in students if student["id"] != student_id]

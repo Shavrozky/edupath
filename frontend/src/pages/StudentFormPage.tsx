@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, getErrorMessage } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import { StudentForm } from '../components/StudentForm';
 import type { Student, StudentPayload } from '../types';
 
 export function StudentFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isSuperadmin } = useAuth();
   const [student, setStudent] = useState<Student | undefined>();
   const [loading, setLoading] = useState(Boolean(id));
   const [error, setError] = useState('');
@@ -34,6 +36,14 @@ export function StudentFormPage() {
   }
 
   if (loading) return <p className="text-slate-500">Memuat form...</p>;
+  if (!isSuperadmin) {
+    return (
+      <div className="rounded-3xl border border-amber-100 bg-amber-50 p-6 text-amber-800">
+        <h1 className="text-xl font-bold">Akses ditolak</h1>
+        <p className="mt-2 text-sm">Role viewer hanya dapat melihat data dan tidak dapat menambah atau mengubah siswa.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

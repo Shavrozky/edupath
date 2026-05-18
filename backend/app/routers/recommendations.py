@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
+from ..auth import require_superadmin
 from ..models import GROUP_NAMES, Recommendation, RecommendationOverride
 from ..scoring import build_recommendations, now_iso, recalculate_filled
 from ..storage import read_json, write_json
@@ -19,7 +20,7 @@ def increase_capacity_if_needed(rombels: list[dict], final_rombel: str | None) -
     return updated
 
 
-@router.post("/generate", response_model=list[Recommendation])
+@router.post("/generate", response_model=list[Recommendation], dependencies=[Depends(require_superadmin)])
 def generate_recommendations() -> list[dict]:
     students = read_json("students")
     rombels = read_json("rombels")
@@ -42,7 +43,7 @@ def get_recommendation(recommendation_id: str) -> dict:
     raise HTTPException(status_code=404, detail="Recommendation not found")
 
 
-@router.patch("/{recommendation_id}/override", response_model=Recommendation)
+@router.patch("/{recommendation_id}/override", response_model=Recommendation, dependencies=[Depends(require_superadmin)])
 def override_recommendation(recommendation_id: str, payload: RecommendationOverride) -> dict:
     recommendations = read_json("recommendations")
     rombels = read_json("rombels")
@@ -82,7 +83,7 @@ def override_recommendation(recommendation_id: str, payload: RecommendationOverr
     raise HTTPException(status_code=404, detail="Recommendation not found")
 
 
-@router.delete("/clear", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/clear", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_superadmin)])
 def clear_recommendations() -> None:
     rombels = read_json("rombels")
     write_json("recommendations", [])

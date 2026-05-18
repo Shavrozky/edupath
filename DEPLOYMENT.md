@@ -132,8 +132,10 @@ nano .env
 Isi contoh:
 
 ```text
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=ganti-dengan-password-kuat
+SUPERADMIN_USERNAME=admin
+SUPERADMIN_PASSWORD=ganti-dengan-password-kuat
+VIEWER_USERNAME=viewer
+VIEWER_PASSWORD=ganti-dengan-password-viewer
 JWT_SECRET_KEY=ganti-dengan-random-secret-panjang
 JWT_EXPIRE_MINUTES=720
 ```

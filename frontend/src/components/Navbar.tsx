@@ -12,7 +12,7 @@ const links = [
 ];
 
 export function Navbar() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   return (
     <aside className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur lg:min-h-screen lg:w-72 lg:border-b-0 lg:border-r">
@@ -47,6 +47,12 @@ export function Navbar() {
         <BackendStatus />
       </div>
       <div className="px-4 pb-4">
+        {user && (
+          <div className="mb-3 rounded-2xl bg-slate-50 px-3 py-2 text-xs text-slate-600 ring-1 ring-slate-200">
+            <p className="font-bold text-slate-900">{user.username}</p>
+            <p className="capitalize">{user.role}</p>
+          </div>
+        )}
         <button
           onClick={logout}
           className="w-full rounded-xl border border-red-100 bg-red-50 px-4 py-2.5 text-sm font-bold text-red-700 transition hover:-translate-y-0.5 hover:bg-red-100 hover:shadow-sm"

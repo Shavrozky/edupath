@@ -37,13 +37,15 @@ Response:
 
 ## Admin Authentication
 
-Backend memakai single-admin JWT auth untuk MVP.
+Backend memakai JWT auth berbasis environment untuk MVP dengan role `superadmin` dan `viewer`.
 
 Environment variables:
 
 ```text
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=change-this-password
+SUPERADMIN_USERNAME=admin
+SUPERADMIN_PASSWORD=change-this-password
+VIEWER_USERNAME=viewer
+VIEWER_PASSWORD=change-this-viewer-password
 JWT_SECRET_KEY=change-this-to-a-long-random-secret
 JWT_EXPIRE_MINUTES=720
 ```
@@ -72,6 +74,11 @@ Content-Type: application/json
   "password": "change-this-password"
 }
 ```
+
+Hak akses:
+
+- `superadmin`: semua endpoint read/write.
+- `viewer`: endpoint GET dan export, tidak bisa POST/PUT/PATCH/DELETE data.
 
 ## File Storage
 
