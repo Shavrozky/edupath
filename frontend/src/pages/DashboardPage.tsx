@@ -28,6 +28,7 @@ export function DashboardPage() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
         <StatCard label="Total Siswa" value={summary.totalStudents} tone="blue" />
+        <StatCard label="Total Kapasitas" value={summary.totalCapacity} tone="blue" />
         <StatCard label="Sudah Ditempatkan" value={summary.totalPlaced} tone="green" />
         <StatCard label="Belum Ditempatkan" value={summary.totalUnplaced} tone="amber" />
         <StatCard label="Need Review" value={summary.totalNeedReview} tone="amber" />
@@ -37,6 +38,10 @@ export function DashboardPage() {
       <div className="grid gap-4 xl:grid-cols-2">
         <SummaryList title="Distribusi Rombel" items={summary.rombelDistribution} />
         <SummaryList title="Distribusi Kelompok" items={summary.groupDistribution} />
+      </div>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <SummaryList title="Sisa Kuota Rombel" items={summary.remainingCapacityByRombel} />
+        <SummaryList title="Placement Basis" items={summary.placementBasisCount} />
       </div>
       <SummaryList title="Demand Mapel" items={summary.subjectDemand} />
     </div>

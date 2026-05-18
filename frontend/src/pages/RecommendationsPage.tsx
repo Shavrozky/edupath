@@ -54,6 +54,7 @@ export function RecommendationsPage() {
           recommendation.originClass,
           recommendation.recommendedGroup,
           recommendation.recommendedRombel ?? '',
+          recommendation.placementBasis,
           recommendation.finalRombel ?? '',
           recommendation.status,
           recommendation.reviewNotes,
@@ -229,6 +230,7 @@ export function RecommendationsPage() {
                   <div className="mt-3 space-y-2 text-slate-600">
                     <p><span className="font-semibold text-slate-800">Group:</span> {selectedRecommendation.recommendedGroup}</p>
                     <p><span className="font-semibold text-slate-800">Rombel:</span> {selectedRecommendation.recommendedRombel ?? '-'}</p>
+                    <p><span className="font-semibold text-slate-800">Dasar Placement:</span> {selectedRecommendation.placementBasis ?? '-'}</p>
                     <p><span className="font-semibold text-slate-800">Alternatif:</span> {selectedRecommendation.alternativeRombels.length ? selectedRecommendation.alternativeRombels.join(', ') : '-'}</p>
                     <p><span className="font-semibold text-slate-800">Status:</span> <RecommendationBadge status={selectedRecommendation.status} /></p>
                     <p><span className="font-semibold text-slate-800">Catatan:</span> {selectedRecommendation.reviewNotes || '-'}</p>
@@ -239,7 +241,7 @@ export function RecommendationsPage() {
               <section className="space-y-4">
                 <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
                   <h3 className="font-semibold text-slate-950">Pilih Final Rombel</h3>
-                  <p className="mt-1 text-sm text-slate-600">Jika rombel sudah penuh, sistem akan menaikkan kapasitas rombel tersebut setelah admin menyimpan placement.</p>
+                    <p className="mt-1 text-sm text-slate-600">Final group otomatis mengikuti rombel yang dipilih. Hindari override ke rombel penuh kecuali sudah disetujui BK.</p>
                   <label className="mt-4 block text-sm font-medium text-slate-700">
                     Final Rombel
                     <select
@@ -281,7 +283,7 @@ export function RecommendationsPage() {
                       <Info label="Filled" value={selectedRombel.filled} />
                       <Info label="Capacity" value={selectedRombel.capacity} />
                       <Info label="Sisa Saat Ini" value={rombelRemaining(selectedRombel)} />
-                      <Info label="Status Setelah Save" value={selectedRombel.filled >= selectedRombel.capacity ? `Capacity naik ke ${selectedRombel.filled + 1}` : 'Masih dalam kapasitas'} />
+                      <Info label="Status Setelah Save" value={selectedRombel.filled >= selectedRombel.capacity ? 'Rombel sudah penuh' : 'Masih dalam kapasitas'} />
                     </div>
                     <p className="mt-3 text-slate-600"><span className="font-semibold text-slate-800">Mapel:</span> {selectedRombel.subjects.join(', ')}</p>
                   </div>
@@ -320,6 +322,7 @@ export function RecommendationsPage() {
             ...GROUP_NAMES.map((group) => ({ key: group, header: `Skor ${group}`, render: (row: Recommendation) => row.scoresByGroup[group] ?? 0 })),
             { key: 'recommendedGroup', header: 'Recommended Group', render: (row) => row.recommendedGroup },
             { key: 'recommendedRombel', header: 'Recommended Rombel', render: (row) => row.recommendedRombel ?? '-' },
+            { key: 'placementBasis', header: 'Placement Basis', render: (row) => row.placementBasis ?? '-' },
             { key: 'finalRombel', header: 'Final Rombel', render: (row) => row.finalRombel ?? '-' },
             { key: 'status', header: 'Status', render: (row) => <RecommendationBadge status={row.status} /> },
             { key: 'reviewNotes', header: 'Review Notes', render: (row) => row.reviewNotes || '-' },

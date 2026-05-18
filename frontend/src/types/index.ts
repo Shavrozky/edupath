@@ -65,7 +65,11 @@ export type Recommendation = {
   studentName: string;
   nis: string;
   originClass: string;
+  prioritySubject1: string;
+  prioritySubject2: string;
+  careerGoal: string;
   scoresByGroup: Record<string, number>;
+  placementBasis: string;
   recommendedGroup: string;
   recommendedRombel: string | null;
   alternativeRombels: string[];
@@ -90,4 +94,5 @@ export type DashboardSummary = {
   groupDistribution: Record<string, number>;
   subjectDemand: Record<string, number>;
   remainingCapacityByRombel: Record<string, number>;
+  placementBasisCount: Record<string, number>;
 };
