@@ -47,6 +47,10 @@ export function Navbar() {
         <BackendStatus />
       </div>
       <div className="px-4 pb-4">
+        <div className="mb-3 rounded-2xl border border-slate-200 bg-white/70 px-3 py-2.5 text-xs text-slate-500">
+          <p className="font-medium">Dikembangkan oleh</p>
+          <p className="mt-0.5 font-bold text-slate-900">Rizky Suryanata</p>
+        </div>
         {user && (
           <div className="mb-3 rounded-2xl bg-slate-50 px-3 py-2 text-xs text-slate-600 ring-1 ring-slate-200">
             <p className="font-bold text-slate-900">{user.username}</p>

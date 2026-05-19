@@ -257,7 +257,7 @@ Content-Type: application/json
   "prioritySubject2": "Kimia",
   "backupSubject": "Bahasa Inggris Tindak Lanjut",
   "strongestSubject": "Biologi",
-  "scores": {
+  "scd cores": {
     "Biologi": 90,
     "Kimia": 85,
     "Fisika": 70,

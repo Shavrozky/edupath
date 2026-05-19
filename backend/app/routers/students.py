@@ -12,6 +12,15 @@ from ..storage import read_json, write_json
 router = APIRouter(prefix="/students", tags=["students"])
 
 
+def remove_student_recommendations(student_id: str) -> None:
+    recommendations = read_json("recommendations")
+    remaining_recommendations = [item for item in recommendations if item.get("studentId") != student_id]
+    if len(remaining_recommendations) == len(recommendations):
+        return
+    write_json("recommendations", remaining_recommendations)
+    write_json("rombels", recalculate_filled(read_json("rombels"), remaining_recommendations))
+
+
 def validate_student_subjects(payload: StudentCreate | StudentUpdate) -> None:
     selected = [payload.prioritySubject1, payload.prioritySubject2, payload.backupSubject, payload.strongestSubject]
     invalid = [subject for subject in selected if subject not in SUBJECT_NAMES]
@@ -77,6 +86,7 @@ def update_student(student_id: str, payload: StudentUpdate) -> dict:
             updated.update({"id": student_id, "createdAt": student["createdAt"], "updatedAt": now_iso()})
             students[index] = updated
             write_json("students", students)
+            remove_student_recommendations(student_id)
             return updated
     raise HTTPException(status_code=404, detail="Student not found")
 
@@ -88,3 +98,4 @@ def delete_student(student_id: str) -> None:
     if len(remaining) == len(students):
         raise HTTPException(status_code=404, detail="Student not found")
     write_json("students", remaining)
+    remove_student_recommendations(student_id)
