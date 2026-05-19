@@ -17,9 +17,9 @@ export default function App() {
         <Route
           path="*"
           element={
-            <div className="min-h-screen lg:flex">
+            <div className="min-h-screen lg:flex lg:h-screen lg:overflow-hidden">
               <Navbar />
-              <main className="flex-1 p-4 md:p-6 xl:p-8">
+              <main className="flex-1 overflow-y-auto p-4 md:p-6 xl:p-8">
                 <Routes>
                   <Route path="/" element={<DashboardPage />} />
                   <Route path="/students" element={<StudentsPage />} />

@@ -26,14 +26,16 @@ export function DashboardPage() {
         <h1 className="text-2xl font-bold text-slate-950">Dashboard</h1>
         <p className="mt-1 text-slate-500">Ringkasan placement dan distribusi rombel.</p>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard label="Total Siswa" value={summary.totalStudents} tone="blue" />
         <StatCard label="Total Kapasitas" value={summary.totalCapacity} tone="blue" />
         <StatCard label="Sudah Ditempatkan" value={summary.totalPlaced} tone="green" />
         <StatCard label="Belum Ditempatkan" value={summary.totalUnplaced} tone="amber" />
         <StatCard label="Need Review" value={summary.totalNeedReview} tone="amber" />
         <StatCard label="Quota Full" value={summary.totalQuotaFull} tone="red" />
-        <StatCard label="Override Manual" value={summary.totalOverridden} tone="blue" />
+        <div className="sm:col-span-2 lg:col-span-3">
+          <StatCard label="Override Manual" value={summary.totalOverridden} tone="blue" />
+        </div>
       </div>
       <div className="grid gap-4 xl:grid-cols-2">
         <SummaryList title="Distribusi Rombel" items={summary.rombelDistribution} />

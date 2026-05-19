@@ -15,7 +15,7 @@ export function Navbar() {
   const { logout, user } = useAuth();
 
   return (
-    <aside className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur lg:min-h-screen lg:w-72 lg:border-b-0 lg:border-r">
+    <aside className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur lg:h-screen lg:w-72 lg:shrink-0 lg:overflow-y-auto lg:border-b-0 lg:border-r">
       <div className="px-4 py-3 lg:px-5 lg:py-5">
         <div className="flex items-center gap-3">
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 font-bold text-white shadow-lg shadow-blue-200 lg:h-11 lg:w-11">EP</div>
