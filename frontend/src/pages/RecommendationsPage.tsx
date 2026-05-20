@@ -3,7 +3,7 @@ import { api, getErrorMessage } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { DataTable } from '../components/DataTable';
 import { RecommendationBadge } from '../components/RecommendationBadge';
-import { GROUP_NAMES, type Recommendation, type Rombel } from '../types';
+import { GROUP_NAMES, type Recommendation, type RecommendationSyncStatus, type Rombel } from '../types';
 
 type OverrideForm = {
   recommendationId: string;
@@ -20,6 +20,7 @@ export function RecommendationsPage() {
   const { isSuperadmin } = useAuth();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [rombels, setRombels] = useState<Rombel[]>([]);
+  const [syncStatus, setSyncStatus] = useState<RecommendationSyncStatus | null>(null);
   const [overrideForm, setOverrideForm] = useState<OverrideForm | null>(null);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
@@ -79,9 +80,14 @@ export function RecommendationsPage() {
   async function loadData() {
     setLoading(true);
     try {
-      const [recommendationsResponse, rombelsResponse] = await Promise.all([api.get<Recommendation[]>('/recommendations'), api.get<Rombel[]>('/rombels')]);
+      const [recommendationsResponse, rombelsResponse, syncStatusResponse] = await Promise.all([
+        api.get<Recommendation[]>('/recommendations'),
+        api.get<Rombel[]>('/rombels'),
+        api.get<RecommendationSyncStatus>('/recommendations/sync-status'),
+      ]);
       setRecommendations(recommendationsResponse.data);
       setRombels(rombelsResponse.data);
+      setSyncStatus(syncStatusResponse.data);
       setError('');
     } catch (err) {
       setError(getErrorMessage(err));
@@ -95,8 +101,25 @@ export function RecommendationsPage() {
     try {
       const response = await api.post<Recommendation[]>('/recommendations/generate');
       setRecommendations(response.data);
-      const rombelsResponse = await api.get<Rombel[]>('/rombels');
+      const [rombelsResponse, syncStatusResponse] = await Promise.all([
+        api.get<Rombel[]>('/rombels'),
+        api.get<RecommendationSyncStatus>('/recommendations/sync-status'),
+      ]);
       setRombels(rombelsResponse.data);
+      setSyncStatus(syncStatusResponse.data);
+      setError('');
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function cleanupRecommendations() {
+    setWorking(true);
+    try {
+      await api.post('/recommendations/cleanup');
+      await loadData();
       setError('');
     } catch (err) {
       setError(getErrorMessage(err));
@@ -170,15 +193,34 @@ export function RecommendationsPage() {
             <option value="placed">Sudah Ditempatkan</option>
           </select>
           {isSuperadmin && (
-            <button disabled={working} onClick={() => void generateRecommendations()} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-md disabled:translate-y-0 disabled:opacity-60">
-              {working ? 'Memproses...' : 'Generate Recommendation'}
-            </button>
+            <>
+              <button disabled={working} onClick={() => void cleanupRecommendations()} className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-amber-100 hover:shadow-md disabled:translate-y-0 disabled:opacity-60">
+                Cleanup Recommendations
+              </button>
+              <button disabled={working} onClick={() => void generateRecommendations()} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-md disabled:translate-y-0 disabled:opacity-60">
+                {working ? 'Memproses...' : 'Regenerate Recommendations'}
+              </button>
+            </>
           )}
           <button onClick={() => void exportExcel()} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm">
             Export Excel
           </button>
         </div>
       </div>
+      {syncStatus && (
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <InfoCard label="Total Students" value={syncStatus.totalStudents} />
+          <InfoCard label="Total Recommendations" value={syncStatus.totalRecommendations} />
+          <InfoCard label="Unrecommended Students" value={syncStatus.unrecommendedStudents} tone={syncStatus.unrecommendedStudents > 0 ? 'amber' : 'slate'} />
+          <InfoCard label="Orphan Recommendations" value={syncStatus.orphanRecommendations + syncStatus.duplicateRecommendations} tone={syncStatus.orphanRecommendations + syncStatus.duplicateRecommendations > 0 ? 'red' : 'slate'} />
+        </div>
+      )}
+      {syncStatus && syncStatus.unrecommendedStudents > 0 && (
+        <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-medium text-amber-800">Ada siswa baru yang belum masuk rekomendasi. Klik Regenerate Recommendations.</p>
+      )}
+      {syncStatus && (syncStatus.orphanRecommendations > 0 || syncStatus.duplicateRecommendations > 0) && (
+        <p className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">Ada rekomendasi dari siswa yang sudah dihapus atau data rekomendasi ganda. Klik Cleanup Recommendations.</p>
+      )}
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <button onClick={() => { setStatusFilter('All'); setPlacementFilter('all'); }} className="rounded-2xl border border-slate-200 bg-white/85 p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Semua Data</p>
@@ -351,6 +393,20 @@ function Info({ label, value }: { label: string; value: string | number }) {
     <div className="rounded-xl bg-slate-50 px-3 py-2">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
       <p className="mt-1 font-bold text-slate-950">{value}</p>
+    </div>
+  );
+}
+
+function InfoCard({ label, value, tone = 'slate' }: { label: string; value: number; tone?: 'slate' | 'amber' | 'red' }) {
+  const toneClass = {
+    slate: 'border-slate-200 bg-white/85 text-slate-950',
+    amber: 'border-amber-100 bg-amber-50/90 text-amber-800',
+    red: 'border-red-100 bg-red-50/90 text-red-800',
+  }[tone];
+  return (
+    <div className={`rounded-2xl border p-4 shadow-sm ${toneClass}`}>
+      <p className="text-xs font-semibold uppercase tracking-wide opacity-70">{label}</p>
+      <p className="mt-2 text-2xl font-bold">{value}</p>
     </div>
   );
 }

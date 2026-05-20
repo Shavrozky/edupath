@@ -21,6 +21,15 @@ def remove_student_recommendations(student_id: str) -> None:
     write_json("rombels", recalculate_filled(read_json("rombels"), remaining_recommendations))
 
 
+def validate_unique_nis(students: list[dict], nis: str, current_student_id: str | None = None) -> None:
+    normalized_nis = str(nis).strip()
+    for student in students:
+        if current_student_id and student["id"] == current_student_id:
+            continue
+        if str(student.get("nis", "")).strip() == normalized_nis:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="NIS sudah terdaftar.")
+
+
 def validate_student_subjects(payload: StudentCreate | StudentUpdate) -> None:
     selected = [payload.prioritySubject1, payload.prioritySubject2, payload.backupSubject, payload.strongestSubject]
     invalid = [subject for subject in selected if subject not in SUBJECT_NAMES]
@@ -68,6 +77,7 @@ def get_student(student_id: str) -> dict:
 def create_student(payload: StudentCreate) -> dict:
     validate_student_subjects(payload)
     students = read_json("students")
+    validate_unique_nis(students, payload.nis)
     timestamp = now_iso()
     student = payload.model_dump()
     student.update({"id": f"student-{uuid4()}", "createdAt": timestamp, "updatedAt": timestamp})
@@ -80,6 +90,7 @@ def create_student(payload: StudentCreate) -> dict:
 def update_student(student_id: str, payload: StudentUpdate) -> dict:
     validate_student_subjects(payload)
     students = read_json("students")
+    validate_unique_nis(students, payload.nis, current_student_id=student_id)
     for index, student in enumerate(students):
         if student["id"] == student_id:
             updated = payload.model_dump()

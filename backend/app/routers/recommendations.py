@@ -8,6 +8,71 @@ from ..storage import read_json, write_json
 router = APIRouter(prefix="/recommendations", tags=["recommendations"])
 
 
+def student_keys(students: list[dict]) -> tuple[set[str], set[str]]:
+    return (
+        {student["id"] for student in students},
+        {str(student.get("nis", "")).strip() for student in students if str(student.get("nis", "")).strip()},
+    )
+
+
+def valid_recommendations(students: list[dict], recommendations: list[dict]) -> list[dict]:
+    student_ids, student_nis = student_keys(students)
+    return [
+        item
+        for item in recommendations
+        if item.get("studentId") in student_ids
+        or (not item.get("studentId") and str(item.get("nis", "")).strip() in student_nis)
+    ]
+
+
+def recommendation_sync_stats(students: list[dict], recommendations: list[dict]) -> dict:
+    student_ids, _ = student_keys(students)
+    recommendation_student_ids = {item.get("studentId") for item in recommendations if item.get("studentId") in student_ids}
+    seen: set[str] = set()
+    duplicate_count = 0
+    for item in recommendations:
+        student_id = item.get("studentId")
+        if not student_id or student_id not in student_ids:
+            continue
+        if student_id in seen:
+            duplicate_count += 1
+        seen.add(student_id)
+    return {
+        "totalStudents": len(students),
+        "totalRecommendations": len(recommendations),
+        "unrecommendedStudents": len(student_ids - recommendation_student_ids),
+        "orphanRecommendations": len(recommendations) - len(valid_recommendations(students, recommendations)),
+        "duplicateRecommendations": duplicate_count,
+    }
+
+
+def cleanup_recommendation_data(students: list[dict], recommendations: list[dict]) -> tuple[list[dict], dict]:
+    total_before = len(recommendations)
+    valid_items = valid_recommendations(students, recommendations)
+    removed_orphans = total_before - len(valid_items)
+
+    by_student_id: dict[str, dict] = {}
+    kept_without_student_id: list[dict] = []
+    for item in valid_items:
+        student_id = item.get("studentId")
+        if not student_id:
+            kept_without_student_id.append(item)
+            continue
+        current = by_student_id.get(student_id)
+        if current is None or str(item.get("updatedAt", "")) > str(current.get("updatedAt", "")):
+            by_student_id[student_id] = item
+
+    cleaned = kept_without_student_id + list(by_student_id.values())
+    removed_duplicates = len(valid_items) - len(cleaned)
+    summary = {
+        "totalBefore": total_before,
+        "totalAfter": len(cleaned),
+        "removedOrphans": removed_orphans,
+        "removedDuplicates": removed_duplicates,
+    }
+    return cleaned, summary
+
+
 @router.post("/generate", response_model=list[Recommendation], dependencies=[Depends(require_superadmin)])
 def generate_recommendations() -> list[dict]:
     students = read_json("students")
@@ -25,7 +90,29 @@ def regenerate_clean() -> list[dict]:
 
 @router.get("", response_model=list[Recommendation])
 def list_recommendations() -> list[dict]:
-    return read_json("recommendations")
+    students = read_json("students")
+    recommendations = read_json("recommendations")
+    cleaned, summary = cleanup_recommendation_data(students, recommendations)
+    if summary["removedOrphans"] or summary["removedDuplicates"]:
+        write_json("recommendations", cleaned)
+        write_json("rombels", recalculate_filled(read_json("rombels"), cleaned))
+    return cleaned
+
+
+@router.get("/sync-status")
+def get_recommendation_sync_status() -> dict:
+    return recommendation_sync_stats(read_json("students"), read_json("recommendations"))
+
+
+@router.post("/cleanup", dependencies=[Depends(require_superadmin)])
+def cleanup_recommendations() -> dict:
+    students = read_json("students")
+    recommendations = read_json("recommendations")
+    cleaned, summary = cleanup_recommendation_data(students, recommendations)
+    write_json("recommendations", cleaned)
+    write_json("rombels", recalculate_filled(read_json("rombels"), cleaned))
+    summary.update(recommendation_sync_stats(students, cleaned))
+    return summary
 
 
 @router.get("/{recommendation_id}", response_model=Recommendation)

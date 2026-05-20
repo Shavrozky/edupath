@@ -82,6 +82,14 @@ export type Recommendation = {
   updatedAt: string;
 };
 
+export type RecommendationSyncStatus = {
+  totalStudents: number;
+  totalRecommendations: number;
+  unrecommendedStudents: number;
+  orphanRecommendations: number;
+  duplicateRecommendations: number;
+};
+
 export type DashboardSummary = {
   totalStudents: number;
   totalCapacity: number;
