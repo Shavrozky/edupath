@@ -38,6 +38,13 @@ def jwt_expire_minutes() -> int:
         return 720
 
 
+def jwt_refresh_expire_minutes() -> int:
+    try:
+        return int(os.getenv("JWT_REFRESH_EXPIRE_MINUTES", "10080"))
+    except ValueError:
+        return 10080
+
+
 def configured_users() -> list[dict[str, str]]:
     return [
         {"username": superadmin_username(), "password": superadmin_password(), "role": "superadmin"},
@@ -45,10 +52,18 @@ def configured_users() -> list[dict[str, str]]:
     ]
 
 
-def create_access_token(subject: str, role: Role) -> str:
-    expires_at = datetime.now(timezone.utc) + timedelta(minutes=jwt_expire_minutes())
-    payload = {"sub": subject, "role": role, "exp": expires_at}
+def create_token(subject: str, role: Role, token_type: str, expires_minutes: int) -> str:
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
+    payload = {"sub": subject, "role": role, "type": token_type, "exp": expires_at}
     return jwt.encode(payload, jwt_secret_key(), algorithm=ALGORITHM)
+
+
+def create_access_token(subject: str, role: Role) -> str:
+    return create_token(subject, role, "access", jwt_expire_minutes())
+
+
+def create_refresh_token(subject: str, role: Role) -> str:
+    return create_token(subject, role, "refresh", jwt_refresh_expire_minutes())
 
 
 def authenticate_user(username: str, password: str) -> dict[str, str] | None:
@@ -67,9 +82,27 @@ def require_auth(credentials: HTTPAuthorizationCredentials | None = Depends(secu
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token") from exc
     subject = payload.get("sub")
     role = payload.get("role")
+    token_type = payload.get("type", "access")
+    if token_type != "access":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
     valid_user = next((user for user in configured_users() if user["username"] == subject and user["role"] == role), None)
     if valid_user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token subject")
+    return {"username": subject, "role": role}
+
+
+def verify_refresh_token(token: str) -> dict[str, str]:
+    try:
+        payload = jwt.decode(token, jwt_secret_key(), algorithms=[ALGORITHM])
+    except JWTError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh token") from exc
+    subject = payload.get("sub")
+    role = payload.get("role")
+    if payload.get("type") != "refresh":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token type")
+    valid_user = next((user for user in configured_users() if user["username"] == subject and user["role"] == role), None)
+    if valid_user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token subject")
     return {"username": subject, "role": role}
 
 

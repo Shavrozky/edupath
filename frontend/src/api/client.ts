@@ -10,6 +10,7 @@ export const api = axios.create({
 });
 
 export const AUTH_TOKEN_KEY = 'edupath_access_token';
+export const AUTH_REFRESH_TOKEN_KEY = 'edupath_refresh_token';
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem(AUTH_TOKEN_KEY);

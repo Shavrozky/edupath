@@ -7,7 +7,7 @@ from ..import_excel import merge_students, read_students_from_excel
 from ..models import SUBJECT_NAMES, Student, StudentCreate, StudentUpdate
 from ..scoring import recalculate_filled
 from ..scoring import now_iso
-from ..storage import read_json, write_json
+from ..storage import backup_json, read_json, write_json
 
 router = APIRouter(prefix="/students", tags=["students"])
 
@@ -108,5 +108,8 @@ def delete_student(student_id: str) -> None:
     remaining = [student for student in students if student["id"] != student_id]
     if len(remaining) == len(students):
         raise HTTPException(status_code=404, detail="Student not found")
+    backup_json("students")
+    backup_json("recommendations")
+    backup_json("rombels")
     write_json("students", remaining)
     remove_student_recommendations(student_id)

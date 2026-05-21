@@ -36,6 +36,19 @@ def dashboard_summary() -> dict:
     remaining_capacity = {
         rombel["name"]: int(rombel.get("capacity", 35)) - int(rombel.get("filled", 0)) for rombel in rombels
     }
+    over_capacity_rombels = [
+        {
+            "name": rombel["name"],
+            "filled": int(rombel.get("filled", 0)),
+            "capacity": int(rombel.get("capacity", 35)),
+            "overBy": int(rombel.get("filled", 0)) - int(rombel.get("capacity", 35)),
+        }
+        for rombel in rombels
+        if int(rombel.get("filled", 0)) > int(rombel.get("capacity", 35))
+    ]
+    total_manual_overrides = sum(
+        1 for item in recommendations if item.get("isOverridden") is True or item.get("placementBasis") == "Manual Override"
+    )
 
     return {
         "totalStudents": len(students),
@@ -45,6 +58,10 @@ def dashboard_summary() -> dict:
         "totalNeedReview": sum(1 for item in recommendations if item.get("status") == "Need Review"),
         "totalQuotaFull": sum(1 for item in recommendations if item.get("status") == "Quota Full"),
         "totalOverridden": sum(1 for item in recommendations if item.get("isOverridden")),
+        "totalManualOverrides": total_manual_overrides,
+        "totalSystemRecommended": max(len(recommendations) - total_manual_overrides, 0),
+        "totalOverCapacityRombels": len(over_capacity_rombels),
+        "overCapacityRombels": over_capacity_rombels,
         "rombelDistribution": dict(rombel_distribution),
         "groupDistribution": dict(group_distribution),
         "subjectDemand": dict(subject_demand),

@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { api, AUTH_TOKEN_KEY } from '../api/client';
+import { api, AUTH_REFRESH_TOKEN_KEY, AUTH_TOKEN_KEY } from '../api/client';
 
 const AUTH_USER_KEY = 'edupath_auth_user';
 type UserRole = 'superadmin' | 'viewer';
 type AuthUser = { username: string; role: UserRole };
+type AuthResponse = { accessToken: string; refreshToken: string; username: string; role: UserRole };
 
 type AuthContextValue = {
   token: string | null;
@@ -28,15 +29,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
 
+  function clearSession() {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_REFRESH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_USER_KEY);
+    setToken(null);
+    setUser(null);
+  }
+
+  function saveSession(response: AuthResponse) {
+    const nextUser = { username: response.username, role: response.role };
+    localStorage.setItem(AUTH_TOKEN_KEY, response.accessToken);
+    localStorage.setItem(AUTH_REFRESH_TOKEN_KEY, response.refreshToken);
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(nextUser));
+    setToken(response.accessToken);
+    setUser(nextUser);
+  }
+
   useEffect(() => {
     const interceptor = api.interceptors.response.use(
       (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          localStorage.removeItem(AUTH_TOKEN_KEY);
-          localStorage.removeItem(AUTH_USER_KEY);
-          setToken(null);
-          setUser(null);
+      async (error) => {
+        const originalRequest = error.config;
+        const refreshToken = localStorage.getItem(AUTH_REFRESH_TOKEN_KEY);
+        if (error.response?.status === 401 && refreshToken && originalRequest && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh')) {
+          originalRequest._retry = true;
+          try {
+            const response = await api.post<AuthResponse>('/auth/refresh', { refreshToken });
+            saveSession(response.data);
+            originalRequest.headers = originalRequest.headers ?? {};
+            originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
+            return api(originalRequest);
+          } catch {
+            clearSession();
+          }
+        } else if (error.response?.status === 401) {
+          clearSession();
         }
         return Promise.reject(error);
       },
@@ -45,19 +73,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function login(username: string, password: string) {
-    const response = await api.post<{ accessToken: string; username: string; role: UserRole }>('/auth/login', { username, password });
-    const nextUser = { username: response.data.username, role: response.data.role };
-    localStorage.setItem(AUTH_TOKEN_KEY, response.data.accessToken);
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(nextUser));
-    setToken(response.data.accessToken);
-    setUser(nextUser);
+    const response = await api.post<AuthResponse>('/auth/login', { username, password });
+    saveSession(response.data);
   }
 
   function logout() {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(AUTH_USER_KEY);
-    setToken(null);
-    setUser(null);
+    clearSession();
   }
 
   const value = useMemo(

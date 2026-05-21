@@ -96,10 +96,16 @@ export function RecommendationsPage() {
     }
   }
 
-  async function generateRecommendations() {
+  async function generateRecommendations(preserveManualOverrides = true) {
+    const confirmed = window.confirm(
+      preserveManualOverrides
+        ? 'Regenerate akan menghitung ulang rekomendasi sistem, tetapi hasil override manual BK akan tetap dipertahankan. Lanjutkan?'
+        : 'PERINGATAN: Force Regenerate All akan menghapus semua hasil edit manual BK. Tindakan ini tidak bisa dibatalkan kecuali dari backup. Lanjutkan?',
+    );
+    if (!confirmed) return;
     setWorking(true);
     try {
-      const response = await api.post<Recommendation[]>('/recommendations/generate');
+      const response = await api.post<Recommendation[]>('/recommendations/generate', { preserveManualOverrides });
       setRecommendations(response.data);
       const [rombelsResponse, syncStatusResponse] = await Promise.all([
         api.get<Rombel[]>('/rombels'),
@@ -197,8 +203,11 @@ export function RecommendationsPage() {
               <button disabled={working} onClick={() => void cleanupRecommendations()} className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-amber-100 hover:shadow-md disabled:translate-y-0 disabled:opacity-60">
                 Cleanup Recommendations
               </button>
-              <button disabled={working} onClick={() => void generateRecommendations()} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-md disabled:translate-y-0 disabled:opacity-60">
+              <button disabled={working} onClick={() => void generateRecommendations(true)} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-md disabled:translate-y-0 disabled:opacity-60">
                 {working ? 'Memproses...' : 'Regenerate Recommendations'}
+              </button>
+              <button disabled={working} onClick={() => void generateRecommendations(false)} className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-red-100 hover:shadow-md disabled:translate-y-0 disabled:opacity-60">
+                Force Regenerate All
               </button>
             </>
           )}
@@ -364,7 +373,7 @@ export function RecommendationsPage() {
             ...GROUP_NAMES.map((group) => ({ key: group, header: `Skor ${group}`, render: (row: Recommendation) => row.scoresByGroup[group] ?? 0 })),
             { key: 'recommendedGroup', header: 'Recommended Group', render: (row) => row.recommendedGroup },
             { key: 'recommendedRombel', header: 'Recommended Rombel', render: (row) => row.recommendedRombel ?? '-' },
-            { key: 'placementBasis', header: 'Placement Basis', render: (row) => row.placementBasis ?? '-' },
+            { key: 'placementBasis', header: 'Placement Basis', render: (row) => <PlacementBasisCell row={row} /> },
             { key: 'finalRombel', header: 'Final Rombel', render: (row) => row.finalRombel ?? '-' },
             { key: 'status', header: 'Status', render: (row) => <RecommendationBadge status={row.status} /> },
             { key: 'reviewNotes', header: 'Review Notes', render: (row) => row.reviewNotes || '-' },
@@ -393,6 +402,16 @@ function Info({ label, value }: { label: string; value: string | number }) {
     <div className="rounded-xl bg-slate-50 px-3 py-2">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
       <p className="mt-1 font-bold text-slate-950">{value}</p>
+    </div>
+  );
+}
+
+function PlacementBasisCell({ row }: { row: Recommendation }) {
+  const isManual = row.isOverridden || row.placementBasis === 'Manual Override';
+  return (
+    <div className="space-y-1">
+      <p>{row.placementBasis ?? '-'}</p>
+      {isManual && <span className="inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700">Manual Override</span>}
     </div>
   );
 }

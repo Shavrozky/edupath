@@ -298,9 +298,13 @@ def recalculate_filled(
 ) -> list[dict[str, Any]]:
     counts: dict[str, int] = defaultdict(int)
     for recommendation in recommendations:
-        final_rombel = recommendation.get("finalRombel")
-        if final_rombel and getGroupByRombel(final_rombel):
-            counts[final_rombel] += 1
+        status = recommendation.get("status")
+        placement_basis = recommendation.get("placementBasis")
+        if status == "Quota Full" or placement_basis == "Not Placed":
+            continue
+        placement_rombel = recommendation.get("finalRombel") or recommendation.get("recommendedRombel")
+        if placement_rombel and getGroupByRombel(placement_rombel):
+            counts[placement_rombel] += 1
 
     updated = []
     for rombel in rombels:

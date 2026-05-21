@@ -98,6 +98,10 @@ export type DashboardSummary = {
   totalNeedReview: number;
   totalQuotaFull: number;
   totalOverridden: number;
+  totalManualOverrides: number;
+  totalSystemRecommended: number;
+  totalOverCapacityRombels: number;
+  overCapacityRombels: Array<{ name: string; filled: number; capacity: number; overBy: number }>;
   rombelDistribution: Record<string, number>;
   groupDistribution: Record<string, number>;
   subjectDemand: Record<string, number>;

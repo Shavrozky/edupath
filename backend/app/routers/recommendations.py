@@ -1,11 +1,48 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 
 from ..auth import require_superadmin
 from ..models import GROUP_NAMES, Recommendation, RecommendationOverride
 from ..scoring import build_recommendations, getGroupByRombel, now_iso, recalculate_filled
-from ..storage import read_json, write_json
+from ..storage import backup_json, read_json, write_json
 
 router = APIRouter(prefix="/recommendations", tags=["recommendations"])
+
+
+class GenerateRequest(BaseModel):
+    preserveManualOverrides: bool = True
+
+
+def is_manual_override(recommendation: dict) -> bool:
+    return recommendation.get("isOverridden") is True or recommendation.get("placementBasis") == "Manual Override"
+
+
+def build_manual_override_map(recommendations: list[dict]) -> dict[str, dict]:
+    result: dict[str, dict] = {}
+    for recommendation in recommendations:
+        student_id = recommendation.get("studentId")
+        if not student_id or not is_manual_override(recommendation):
+            continue
+        current = result.get(student_id)
+        if current is None or str(recommendation.get("updatedAt", "")) > str(current.get("updatedAt", "")):
+            result[student_id] = recommendation
+    return result
+
+
+def merge_generated_with_manual_override(generated_rec: dict, manual_rec: dict) -> dict:
+    merged = dict(generated_rec)
+    merged.update(
+        {
+            "finalGroup": manual_rec.get("finalGroup"),
+            "finalRombel": manual_rec.get("finalRombel"),
+            "status": manual_rec.get("status", "Manually Overridden"),
+            "reviewNotes": manual_rec.get("reviewNotes", ""),
+            "isOverridden": True,
+            "placementBasis": "Manual Override",
+            "updatedAt": manual_rec.get("updatedAt") or now_iso(),
+        }
+    )
+    return merged
 
 
 def student_keys(students: list[dict]) -> tuple[set[str], set[str]]:
@@ -59,7 +96,14 @@ def cleanup_recommendation_data(students: list[dict], recommendations: list[dict
             kept_without_student_id.append(item)
             continue
         current = by_student_id.get(student_id)
-        if current is None or str(item.get("updatedAt", "")) > str(current.get("updatedAt", "")):
+        if current is None:
+            by_student_id[student_id] = item
+            continue
+        current_manual = is_manual_override(current)
+        item_manual = is_manual_override(item)
+        if (item_manual and not current_manual) or (
+            item_manual == current_manual and str(item.get("updatedAt", "")) > str(current.get("updatedAt", ""))
+        ):
             by_student_id[student_id] = item
 
     cleaned = kept_without_student_id + list(by_student_id.values())
@@ -74,10 +118,24 @@ def cleanup_recommendation_data(students: list[dict], recommendations: list[dict
 
 
 @router.post("/generate", response_model=list[Recommendation], dependencies=[Depends(require_superadmin)])
-def generate_recommendations() -> list[dict]:
+def generate_recommendations(payload: GenerateRequest | None = None) -> list[dict]:
+    preserve_manual = True if payload is None else payload.preserveManualOverrides
     students = read_json("students")
     rombels = read_json("rombels")
+    old_recommendations = read_json("recommendations")
+    backup_json("recommendations")
+    backup_json("rombels")
+    backup_json("students")
     recommendations, updated_rombels = build_recommendations(students, rombels)
+    if preserve_manual:
+        manual_by_student_id = build_manual_override_map(valid_recommendations(students, old_recommendations))
+        recommendations = [
+            merge_generated_with_manual_override(recommendation, manual_by_student_id[recommendation["studentId"]])
+            if recommendation.get("studentId") in manual_by_student_id
+            else recommendation
+            for recommendation in recommendations
+        ]
+        updated_rombels = recalculate_filled(updated_rombels, recommendations)
     write_json("recommendations", recommendations)
     write_json("rombels", updated_rombels)
     return recommendations
@@ -85,7 +143,7 @@ def generate_recommendations() -> list[dict]:
 
 @router.post("/regenerate-clean", response_model=list[Recommendation], dependencies=[Depends(require_superadmin)])
 def regenerate_clean() -> list[dict]:
-    return generate_recommendations()
+    return generate_recommendations(GenerateRequest())
 
 
 @router.get("", response_model=list[Recommendation])
@@ -108,6 +166,9 @@ def get_recommendation_sync_status() -> dict:
 def cleanup_recommendations() -> dict:
     students = read_json("students")
     recommendations = read_json("recommendations")
+    backup_json("recommendations")
+    backup_json("rombels")
+    backup_json("students")
     cleaned, summary = cleanup_recommendation_data(students, recommendations)
     write_json("recommendations", cleaned)
     write_json("rombels", recalculate_filled(read_json("rombels"), cleaned))

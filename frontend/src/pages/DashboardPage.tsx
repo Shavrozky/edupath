@@ -34,9 +34,15 @@ export function DashboardPage() {
         <StatCard label="Need Review" value={summary.totalNeedReview} tone="amber" />
         <StatCard label="Quota Full" value={summary.totalQuotaFull} tone="red" />
         <div className="sm:col-span-2 lg:col-span-3">
-          <StatCard label="Override Manual" value={summary.totalOverridden} tone="blue" />
+          <StatCard label="Override Manual" value={summary.totalManualOverrides ?? summary.totalOverridden} tone="blue" />
         </div>
       </div>
+      {summary.totalOverCapacityRombels > 0 && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <p className="font-bold">Rombel melebihi kapasitas karena manual override.</p>
+          <p className="mt-1">{summary.overCapacityRombels.map((item) => `${item.name}: ${item.filled}/${item.capacity}`).join(', ')}</p>
+        </div>
+      )}
       <div className="grid gap-4 xl:grid-cols-2">
         <SummaryList title="Distribusi Rombel" items={summary.rombelDistribution} />
         <SummaryList title="Distribusi Kelompok" items={summary.groupDistribution} />

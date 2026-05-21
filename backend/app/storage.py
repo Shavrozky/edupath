@@ -1,4 +1,6 @@
 import json
+import shutil
+from datetime import datetime
 from pathlib import Path
 from typing import Any, List
 
@@ -44,3 +46,15 @@ def read_json(name: str) -> List[dict[str, Any]]:
 def write_json(name: str, data: List[dict[str, Any]]) -> None:
     path = ensure_json_file(name)
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def backup_json(name: str) -> str | None:
+    path = ensure_json_file(name)
+    if not path.exists():
+        return None
+    backup_dir = DATA_DIR / "backups"
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    backup_path = backup_dir / f"{path.stem}.backup.{timestamp}.json"
+    shutil.copy2(path, backup_path)
+    return str(backup_path)
