@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 from .auth import require_auth
-from .export_excel import build_recommendations_workbook
+from .export_excel import build_recommendations_workbook, build_students_workbook
 from .routers import auth, dashboard, recommendations, rombels, students, subjects
 from .storage import read_json
 
@@ -57,6 +57,17 @@ def export_recommendations(
         suffix.append(placement)
     filename = "recommendations" + ("-" + "-".join(suffix) if suffix else "") + ".xlsx"
     headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+    return StreamingResponse(
+        workbook,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers,
+    )
+
+
+@app.get("/export/students.xlsx")
+def export_students(_user: dict[str, str] = Depends(require_auth)) -> StreamingResponse:
+    workbook = build_students_workbook(read_json("students"))
+    headers = {"Content-Disposition": 'attachment; filename="students.xlsx"'}
     return StreamingResponse(
         workbook,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

@@ -71,6 +71,24 @@ export function StudentsPage() {
     }
   }
 
+  async function exportExcel() {
+    try {
+      const response = await api.get('/export/students.xlsx', { responseType: 'blob' });
+      const url = URL.createObjectURL(response.data);
+      const link = document.createElement('a');
+      const disposition = response.headers['content-disposition'];
+      const filenameMatch = typeof disposition === 'string' ? disposition.match(/filename="?([^";]+)"?/) : null;
+      link.href = url;
+      link.download = filenameMatch?.[1] ?? 'students.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
+  }
+
   useEffect(() => {
     void loadStudents();
   }, []);
@@ -84,6 +102,9 @@ export function StudentsPage() {
         </div>
         {isSuperadmin && (
           <div className="flex flex-wrap gap-2">
+            <button onClick={() => void exportExcel()} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm">
+              Export Excel
+            </button>
             <label className="cursor-pointer rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm">
               {importing ? 'Importing...' : 'Import Excel'}
               <input disabled={importing} type="file" accept=".xlsx" className="hidden" onChange={(event) => void importExcel(event.target.files?.[0] ?? null)} />
@@ -144,7 +165,7 @@ export function StudentsPage() {
             <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-red-50 text-xl font-bold text-red-600 ring-1 ring-red-100">!</div>
             <h2 className="mt-4 text-center text-xl font-bold text-slate-950">Hapus data siswa?</h2>
             <p className="mt-2 text-center text-sm text-slate-500">
-              Data <span className="font-semibold text-slate-800">{deleteTarget.name}</span> akan dihapus dari daftar siswa. Tindakan ini tidak otomatis menghapus rekomendasi lama sampai generate ulang.
+              Data <span className="font-semibold text-slate-800">{deleteTarget.name}</span> akan dihapus dari daftar siswa dan rekomendasi terkait.
             </p>
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" onClick={() => setDeleteTarget(null)}>
